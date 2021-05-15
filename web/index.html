@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <!-- development version, includes helpful console warnings -->
+    <script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
+</head>
+<body>
+
+    <table id="lootTable">
+        <tr>
+            <th>Item Name</th>
+            <th>Qty</th>
+            <th>Price</th>
+            <th>Owner</th>
+        </tr>
+        <tr v-for="(item, index) in items">
+            <td>{{ item.name }}</td>
+            <td>{{ item.qty }}</td>
+            <td>{{ item.qty * item.price }}</td>
+            <td>{{ item.owner }}</td>
+            <td><button @click="deleteItem($index)"> Delete item </button></td>
+        </tr>
+        <tr>
+            <td><input id="itemInput" type="text" list="foundItems" @keyup="textSearch($event)" @keyup.enter="submitItem($event)">
+                <datalist id="foundItems">
+                    <option v-for="item in foundItems" v-bind:value=item.name>{{ item.name }}</option>
+                </datalist></td>
+            <td><input id="itemQty" type="text" @keyup="calculatePrice()" @keyup.enter="submitItem($event)" v-bind:placeholder="item.qty"></td>
+            <td>{{ item.price * item.qty }}</td>
+            <td><select name="character" id="character">
+                <option value="None">None</option>
+                <option value="Oliver">Oliver</option>
+                <option value="Zach">Zach</option>
+                <option value="Seth">Seth</option>
+                <option value="Stephen">Stephen</option>
+                <option value="Jordan">Jordan</option>
+              </select></td>
+            <td><button @click="submitItem($event)">Add Item</button></td>
+        </tr>
+    </table>
+    <script>
+        var app = new Vue({
+            el: "#lootTable",
+            data: {
+                timer: null,
+                items: [
+                    {
+                        name: "Sword",
+                        qty: 1,
+                        price: 2,
+                        owner: "none"
+                    }
+                ],
+                item: {
+                    name: "",
+                    qty: 1,
+                    price: 0,
+                    owner: null
+                },
+                foundItems: []
+            },
+            created: function() {
+                // Call db for initial list of items
+            },
+            methods: {
+                textSearch(e){
+                    clearTimeout(this.timer)
+                    if (document.getElementById('itemInput').value.length != 0) {
+                        this.timer = setTimeout(() => {
+                            console.log('searching...');
+                            console.log(document.getElementById('itemInput').value);
+                            // Make request to search for item
+                            var stub = {
+                                results: [
+                                    {
+                                        name: "Short Sword",
+                                        price: 2,
+                                    },
+                                    {
+                                        name: "long Sword",
+                                        price: 3,
+                                    },
+                                    {
+                                        name: "2 hand Sword",
+                                        price: 5,
+                                    },
+                                    {
+                                        name: "silver Sword",
+                                        price: 7,
+                                    },
+                                    {
+                                        name: "energy Sword",
+                                        price: 10,
+                                    },
+                                ]
+                            }
+                            this.foundItems = stub.results;
+                            this.item.name = document.getElementById('itemInput').value;
+                            this.item.price = 5;
+                        }, 1000)
+                    }
+                },
+                submitItem(e) {
+                    console.log("submit item");
+                    this.item.name = document.getElementById('itemInput').value;
+                    this.item.qty = document.getElementById('itemQty').value;
+                    this.item.owner = document.getElementById('character').value;                
+                    this.items.push(this.item);
+                    this.resetEntries();
+
+                },
+                calculatePrice() {
+                    console.log("calculate price");
+                    clearTimeout(this.timer);
+                    this.timer = setTimeout(() => {
+                        this.item.qty = document.getElementById('itemQty').value;
+                    }, 500)
+                },
+                resetEntries() {
+                    this.item = {
+                        name: "",
+                        qty: 1,
+                        price: 1,
+                        totalPrice: 1,
+                        owner: null
+                    }
+                    document.getElementById('itemInput').value = "";
+                    document.getElementById('itemQty').value = 1;
+                    document.getElementById('character').selectedIndex = 0;
+                },
+                deleteItem(index) {
+                    console.log("deleteItem");
+                    // Confirmation button for delete?
+                    this.items.splice(index,1);
+                    console.log(this.items);
+                }
+            }
+        })
+    </script>
+</body>
+
+</html>
+
+<!-- Call to db for list of loot on load -->
+<!-- After stopped typing, automatically query db -->
+<!-- Inject a link to item in pf2srd with v-html? -->
+<!-- For searching on stopped typing https://jsfiddle.net/MapletoneMartin/yjxfsehz/2/ -->
